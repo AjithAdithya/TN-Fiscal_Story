@@ -104,7 +104,8 @@ body { background: var(--cream); color: var(--ink); font-family: var(--sans); li
 .compare-row { display: flex; align-items: center; gap: .75rem; margin-bottom: .75rem; }
 .compare-tag { width: 70px; text-align: right; font-family: var(--mono); font-size: .65rem; font-weight: 600; flex-shrink: 0; }
 .compare-bar-track { flex: 1; height: 32px; background: var(--whisper); border-radius: 8px; overflow: hidden; }
-.compare-bar-fill { height: 100%; border-radius: 8px; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; font-family: var(--mono); font-size: .68rem; font-weight: 600; color: #fff; transition: width 1.5s cubic-bezier(.22,1,.36,1); }
+.compare-bar-fill { height: 100%; border-radius: 8px; transition: width 1.5s cubic-bezier(.22,1,.36,1); }
+.compare-bar-outside-label { font-family: var(--mono); font-size: .65rem; font-weight: 600; color: var(--slate); white-space: nowrap; flex-shrink: 0; padding-left: .5rem; }
 
 /* LOLLIPOP */
 .lollipop { margin: .6rem 0; display: flex; align-items: center; gap: .75rem; }

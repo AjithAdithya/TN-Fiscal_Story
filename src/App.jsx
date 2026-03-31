@@ -559,8 +559,16 @@ export default function App() {
           <div className="viz-sub">Total budget = ₹4.39L Cr · How much is left?</div>
           <div className="compare-strip">
             <div style={{ fontFamily: 'var(--mono)', fontSize: '.62rem', color: 'var(--slate)', marginBottom: '.5rem' }}>ALREADY LOCKED IN</div>
-            <div className="compare-row"><div className="compare-tag" style={{ color: 'var(--slate)' }}>Committed</div><div className="compare-bar-track"><div className="compare-bar-fill" data-width={47.2} style={{ background: '#444', width: '0%' }}>₹2.07L Cr — 47% of budget</div></div></div>
-            <div className="compare-row"><div className="compare-tag" style={{ color: 'var(--slate)' }}>Welfare</div><div className="compare-bar-track"><div className="compare-bar-fill" data-width={36.4} style={{ background: '#777', width: '0%' }}>₹1.60L Cr — 36% of budget</div></div></div>
+            <div className="compare-row">
+              <div className="compare-tag" style={{ color: 'var(--slate)' }}>Committed</div>
+              <div className="compare-bar-track"><div className="compare-bar-fill" data-width={47.2} style={{ background: '#444', width: '0%' }} /></div>
+              <div className="compare-bar-outside-label">₹2.07L Cr — 47% of budget</div>
+            </div>
+            <div className="compare-row">
+              <div className="compare-tag" style={{ color: 'var(--slate)' }}>Welfare</div>
+              <div className="compare-bar-track"><div className="compare-bar-fill" data-width={36.4} style={{ background: '#777', width: '0%' }} /></div>
+              <div className="compare-bar-outside-label">₹1.60L Cr — 36% of budget</div>
+            </div>
             <div style={{ fontFamily: 'var(--mono)', fontSize: '.62rem', color: 'var(--slate)', margin: '1rem 0 .5rem' }}>NEW PROMISES (on top of the above)</div>
             {[
               { tag: 'DMK',  color: 'var(--dmk)',        bg: 'var(--dmk)',                                          w: 13,   label: '₹57K Cr — 13%' },
@@ -571,7 +579,8 @@ export default function App() {
                 <div className="compare-tag" style={{ color }}>
                   <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '2px', background: color, marginRight: '3px' }} />{tag}
                 </div>
-                <div className="compare-bar-track"><div className="compare-bar-fill" data-width={w} style={{ background: bg, width: '0%' }}>{label}</div></div>
+                <div className="compare-bar-track"><div className="compare-bar-fill" data-width={w} style={{ background: bg, width: '0%' }} /></div>
+                <div className="compare-bar-outside-label" style={{ color }}>{label}</div>
               </div>
             ))}
           </div>
@@ -664,6 +673,22 @@ export default function App() {
         <p style={{ marginTop: '1.5rem', fontSize: '.65rem', color: 'rgba(90,99,120,.5)' }}>
           All figures in Indian Rupees (₹). BE = Budget Estimates. Election promise costings are editorial estimates based on beneficiary counts × per-unit amounts from party manifestos. Dashboard compiled March 31, 2026.
         </p>
+        <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(0,0,0,.06)', display: 'flex', alignItems: 'center', gap: '.75rem' }}>
+          <div style={{ fontSize: '.72rem', color: 'var(--slate)' }}>
+            Built by <strong style={{ color: 'var(--ink)' }}>Ajith Adithya R K</strong> using Claude
+          </div>
+          <a
+            href="https://www.linkedin.com/in/ajith98/"
+            target="_blank"
+            rel="noreferrer"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '.35rem', fontFamily: 'var(--mono)', fontSize: '.62rem', color: '#0077B5', background: 'rgba(0,119,181,.07)', padding: '4px 10px', borderRadius: '6px', textDecoration: 'none', transition: 'background .2s' }}
+            onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,119,181,.15)'}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,119,181,.07)'}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="#0077B5"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            LinkedIn
+          </a>
+        </div>
       </div>
     </>
   )
