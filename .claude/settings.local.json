@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/ajith/Downloads/**)",
+      "Read(//c/Users/ajith/Downloads/TamilNadu_Fiscal_2026/**)",
+      "Bash(cp \"/c/Users/ajith/AppData/Roaming/Claude/local-agent-mode-sessions/bce884aa-14a3-44b0-a49e-8fa2290f692a/023d95ba-4a53-499f-b0a5-fb82dfea20ee/local_b01ac742-ea40-4e64-a3e9-d2d8610b0746/outputs/TamilNadu_Fiscal_Story_2026_v3.html\" \"/c/Users/ajith/Downloads/TamilNadu_Fiscal_2026/.claude/worktrees/infallible-villani/TamilNadu_Fiscal_Story_2026_v3.html\")",
+      "Bash(echo \"exit: $?\")"
+    ]
+  }
+}
