@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Analytics } from '@vercel/analytics/react'
 import Poll from './components/Poll'
 import AnimatedNumber from './components/AnimatedNumber'
 import DonutChart from './components/DonutChart'
@@ -716,6 +717,7 @@ export default function App() {
           </a>
         </div>
       </div>
+      <Analytics />
     </>
   )
 }
