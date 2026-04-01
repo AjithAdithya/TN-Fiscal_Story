@@ -164,11 +164,6 @@ export default function App() {
         ))}
       </nav>
 
-      {/* Mobile section label bar (Mod 11) */}
-      <div className="mobile-section-bar">
-        {SECTIONS[activeIdx]?.label}
-      </div>
-
       {/* ═══ HERO ═══ */}
       <section className="hero" id="sec-hero">
         <div className="hero-kicker">A data story · Tamil Nadu Assembly Elections 2026</div>
