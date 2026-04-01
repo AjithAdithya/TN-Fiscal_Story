@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import Poll from './components/Poll'
+import AnimatedNumber from './components/AnimatedNumber'
+import DonutChart from './components/DonutChart'
+import TasmacSparkline from './components/TasmacSparkline'
+import CommittedBars from './components/CommittedBars'
+import WaterfallChart from './components/WaterfallChart'
 
-// ─── Waffle chart ──────────────────────────────────────────────────
+// ─── Waffle chart (62p lock: salaries/interest/pensions) ───────────
 const WAFFLE_COLS = [
   ...Array(28).fill('#c0392b'),
   ...Array(21).fill('#e67e22'),
@@ -12,7 +17,6 @@ const WAFFLE_COLS = [
 function WaffleChart() {
   const wrapRef = useRef(null)
   const [visible, setVisible] = useState(false)
-
   useEffect(() => {
     const obs = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect() } },
@@ -21,16 +25,12 @@ function WaffleChart() {
     if (wrapRef.current) obs.observe(wrapRef.current)
     return () => obs.disconnect()
   }, [])
-
   return (
-    <div ref={wrapRef} id="waffle-container">
+    <div ref={wrapRef}>
       <div className="waffle">
         {WAFFLE_COLS.map((bg, i) => (
-          <div
-            key={i}
-            className="waffle-cell"
-            style={{ background: bg, opacity: visible ? 1 : 0, transitionDelay: `${i * 18}ms` }}
-          />
+          <div key={i} className="waffle-cell"
+            style={{ background: bg, opacity: visible ? 1 : 0, transitionDelay: `${i * 18}ms` }} />
         ))}
       </div>
       <div style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', marginTop: '1rem', flexWrap: 'wrap' }}>
@@ -70,7 +70,9 @@ export default function App() {
   const [progress, setProgress]         = useState(0)
   const [activeIdx, setActiveIdx]       = useState(0)
   const [showLabel, setShowLabel]       = useState(false)
+  const [bigNumVisible, setBigNumVisible] = useState(false)
   const labelTimerRef                   = useRef(null)
+  const bigNumRef                       = useRef(null)
 
   // Scroll progress bar
   useEffect(() => {
@@ -103,13 +105,23 @@ export default function App() {
     return () => obs.disconnect()
   }, [])
 
+  // Big-num count-up trigger
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setBigNumVisible(true); obs.disconnect() } },
+      { threshold: 0.3 }
+    )
+    if (bigNumRef.current) obs.observe(bigNumRef.current)
+    return () => obs.disconnect()
+  }, [])
+
   // Reveal + animate bars
   useEffect(() => {
     const obs = new IntersectionObserver(entries => {
       entries.forEach(e => {
         if (!e.isIntersecting) return
         e.target.classList.add('visible')
-        e.target.querySelectorAll('.h-bar-fill, .compare-bar-fill').forEach(b => {
+        e.target.querySelectorAll('.h-bar-fill, .compare-bar-fill, .promise-bar-fill').forEach(b => {
           const w = b.getAttribute('data-width')
           if (w) setTimeout(() => { b.style.width = w + '%' }, 200)
         })
@@ -140,7 +152,7 @@ export default function App() {
         {SECTIONS[activeIdx]?.label}
       </div>
 
-      {/* Side nav dots */}
+      {/* Side nav dots (desktop) */}
       <nav className="section-nav">
         {SECTIONS.map((s, i) => (
           <a
@@ -151,6 +163,11 @@ export default function App() {
           />
         ))}
       </nav>
+
+      {/* Mobile section label bar (Mod 11) */}
+      <div className="mobile-section-bar">
+        {SECTIONS[activeIdx]?.label}
+      </div>
 
       {/* ═══ HERO ═══ */}
       <section className="hero" id="sec-hero">
@@ -258,11 +275,20 @@ export default function App() {
       </div>
 
       <div className="viz-section reveal">
-        <div className="big-num-row">
-          <div className="big-num"><div className="accent-bar" style={{ background: 'var(--teal)' }} /><div className="label">GSDP 2025-26</div><div className="value" style={{ color: 'var(--teal)' }}>₹35.68L Cr</div><div className="context">~$420B · 2nd largest state<sup><a className="cite" href="#s1">[1]</a></sup></div></div>
-          <div className="big-num"><div className="accent-bar" style={{ background: 'var(--gold)' }} /><div className="label">Revenue Receipts</div><div className="value" style={{ color: 'var(--gold)' }}>₹3.32L Cr</div><div className="context">What the govt collects<sup><a className="cite" href="#s2">[2]</a></sup></div></div>
-          <div className="big-num"><div className="accent-bar" style={{ background: 'var(--rust)' }} /><div className="label">Total Expenditure</div><div className="value" style={{ color: 'var(--rust)' }}>₹4.39L Cr</div><div className="context">What it spends<sup><a className="cite" href="#s1">[1]</a></sup></div></div>
-          <div className="big-num"><div className="accent-bar" style={{ background: 'var(--ink)' }} /><div className="label">The Gap</div><div className="value">₹1.07L Cr</div><div className="context">Filled by borrowing every year</div></div>
+        <div className="big-num-row" ref={bigNumRef}>
+          {[
+            { accent: 'var(--teal)', label: 'GSDP 2025-26',      value: '₹35.68L Cr', color: 'var(--teal)',  context: <>~$420B · 2nd largest state<sup><a className="cite" href="#s1">[1]</a></sup></>, delay: 0 },
+            { accent: 'var(--gold)', label: 'Revenue Receipts',   value: '₹3.32L Cr',  color: 'var(--gold)',  context: <>What the govt collects<sup><a className="cite" href="#s2">[2]</a></sup></>, delay: 150 },
+            { accent: 'var(--rust)', label: 'Total Expenditure',  value: '₹4.39L Cr',  color: 'var(--rust)',  context: <>What it spends<sup><a className="cite" href="#s1">[1]</a></sup></>, delay: 300 },
+            { accent: 'var(--ink)',  label: 'The Gap',            value: '₹1.07L Cr',  color: 'var(--ink)',   context: 'Filled by borrowing every year', delay: 450 },
+          ].map(({ accent, label, value, color, context, delay }) => (
+            <div key={label} className="big-num" style={{ transitionDelay: `${delay}ms` }}>
+              <div className="accent-bar" style={{ background: accent }} />
+              <div className="label">{label}</div>
+              <div className="value"><AnimatedNumber value={value} color={color} isVisible={bigNumVisible} /></div>
+              <div className="context">{context}</div>
+            </div>
+          ))}
         </div>
         <div className="viz-source">Sources: <a href="https://prsindia.org/budgets/states/tamil-nadu-budget-analysis-2025-26" target="_blank" rel="noreferrer">[1] PRS India — TN Budget Analysis 2025-26</a> · <a href="https://financedept.tn.gov.in/budget/" target="_blank" rel="noreferrer">[2] TN Finance Dept — Budget 2025-26</a></div>
       </div>
@@ -292,7 +318,16 @@ export default function App() {
       <div className="narrative reveal">
         <p><strong>62 paise of every rupee is already spoken for</strong> — salaries for 8 lakh+ government employees, pensions for retirees, and interest on ₹9.3 lakh crore in debt.<sup><a className="cite" href="#s3">[3]</a></sup> These are legally binding. They cannot be cut.</p>
         <div className="callout gold">
-          <strong>The trend is worsening.</strong> Committed expenditure has grown from ₹1.73L Cr (FY24) → ₹1.90L Cr (FY25) → ₹2.07L Cr (FY26).<sup><a className="cite" href="#s3">[3]</a></sup><sup><a className="cite" href="#s4">[4]</a></sup> Interest payments alone jumped 29%, from ₹54,676 Cr to ₹70,254 Cr in two years.
+          <strong>The trend is worsening.</strong> Interest payments alone jumped 29%, from ₹54,676 Cr to ₹70,254 Cr in two years.<sup><a className="cite" href="#s3">[3]</a></sup><sup><a className="cite" href="#s4">[4]</a></sup>
+        </div>
+      </div>
+
+      <div className="viz-section reveal">
+        <div className="viz-card">
+          <h3>Committed expenditure — three-year climb</h3>
+          <div className="viz-sub">Legally binding spending (salaries + pensions + interest) · ₹ Cr</div>
+          <CommittedBars />
+          <div className="viz-source">Sources: <a href="https://prsindia.org/files/budget/budget_state/tamil-nadu/2025/TN_Budget_Analysis_2025-26.pdf" target="_blank" rel="noreferrer">[3] PRS India — Committed Expenditure Table 3</a> · <a href="https://prsindia.org/budgets/states/tamil-nadu-budget-analysis-2024-25" target="_blank" rel="noreferrer">[4] PRS India 2024-25</a></div>
         </div>
       </div>
 
@@ -305,6 +340,28 @@ export default function App() {
         <p>Tamil Nadu raises <strong>75.3% of its revenue from its own sources</strong><sup><a className="cite" href="#s2">[2]</a></sup> — one of the highest self-reliance ratios in India. Only 24.7% comes from the Centre. The Finance Minister called the state's 4% share of central taxes a "gross injustice" given it contributes 9% of GDP.<sup><a className="cite" href="#s5">[5]</a></sup></p>
       </div>
 
+      {/* Mod 2 — Donut chart: own sources vs Centre */}
+      <div className="viz-section reveal">
+        <div className="viz-card" style={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '2rem', alignItems: 'center' }}>
+          <DonutChart
+            segments={[
+              { pct: 75.3, color: 'var(--teal)', label: 'Own sources' },
+              { pct: 24.7, color: 'rgba(90,99,120,.35)', label: 'From Centre' },
+            ]}
+            centerLabel="75.3%"
+            centerSub="SELF-RELIANT"
+            maxWidth={220}
+          />
+          <div>
+            <h3 style={{ fontFamily: 'var(--serif)', marginBottom: '.5rem' }}>Revenue self-reliance</h3>
+            <p style={{ fontSize: '.85rem', color: 'var(--slate)', marginBottom: '.75rem' }}>Tamil Nadu raises <strong style={{ color: 'var(--ink)' }}>75.3%</strong> from its own taxes — one of India's highest. Only 24.7% from the Centre.</p>
+            <p style={{ fontSize: '.78rem', color: 'var(--slate)' }}>The Finance Minister called the state's 4% share of central taxes a "gross injustice" given it contributes 9% of national GDP.</p>
+          </div>
+          <div className="viz-source" style={{ gridColumn: '1 / -1' }}>Source: <a href="https://financedept.tn.gov.in/budget/" target="_blank" rel="noreferrer">[2] TN Finance Dept</a></div>
+        </div>
+      </div>
+
+      {/* Mod 3 — Tax bars with cumulative bracket */}
       <div className="viz-section reveal">
         <div className="viz-card">
           <h3>Tax revenue</h3>
@@ -312,6 +369,24 @@ export default function App() {
           {[
             { label: 'State GST',      w: 100,  color: 'var(--teal)',  val: '₹92,872' },
             { label: 'Sales Tax / VAT',w: 76.5, color: 'var(--dmk)',   val: '₹71,058' },
+          ].map(({ label, w, color, val }) => (
+            <div key={label} className="lollipop">
+              <div className="lollipop-label">{label}</div>
+              <div className="lollipop-track">
+                <div className="lollipop-line" data-width={w} style={{ background: `linear-gradient(to right, transparent, ${color})`, width: '0%' }} />
+                <div className="lollipop-dot" data-left={w} style={{ background: color, left: '0%' }} />
+              </div>
+              <div className="lollipop-val">{val}</div>
+            </div>
+          ))}
+          {/* Inline bracket callout after top-2 bars */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '.6rem', margin: '.2rem 0 .6rem', paddingLeft: 'calc(min(120px,160px) + .75rem)' }}>
+            <div style={{ width: '2px', height: '28px', background: 'var(--gold)', borderRadius: '1px', flexShrink: 0 }} />
+            <span style={{ fontFamily: 'var(--mono)', fontSize: '.62rem', color: 'var(--gold)', fontWeight: 600 }}>
+              Combined: 74% of all own tax revenue
+            </span>
+          </div>
+          {[
             { label: 'Stamps & Reg.',  w: 28.1, color: 'var(--gold)',  val: '₹26,109' },
             { label: 'Motor Vehicle',  w: 14.5, color: 'var(--bjp)',   val: '₹13,441' },
             { label: 'State Excise',   w: 13.9, color: 'var(--rust)',  val: '₹12,944' },
@@ -320,8 +395,8 @@ export default function App() {
             <div key={label} className="lollipop">
               <div className="lollipop-label">{label}</div>
               <div className="lollipop-track">
-                <div className="lollipop-line" data-width={w} style={{ background: color, width: '0%' }} />
-                <div className="lollipop-dot"  data-left={w}  style={{ background: color, left: '0%' }} />
+                <div className="lollipop-line" data-width={w} style={{ background: `linear-gradient(to right, transparent, ${color})`, width: '0%' }} />
+                <div className="lollipop-dot" data-left={w} style={{ background: color, left: '0%' }} />
               </div>
               <div className="lollipop-val">{val}</div>
             </div>
@@ -338,22 +413,7 @@ export default function App() {
         <div className="viz-card">
           <h3>TASMAC: the revenue elephant</h3>
           <div className="viz-sub">State liquor monopoly — revenue trajectory</div>
-          <div className="timeline">
-            {[
-              { year: '2019-20', val: '₹33,133 Cr', note: 'Pre-pandemic · 5,402 outlets' },
-              { year: '2020-21', val: '₹33,811 Cr', note: '+2% — resilient through lockdowns' },
-              { year: '2021-22', val: '₹36,051 Cr', note: '+6.6% — DMK assumes power' },
-              { year: '2022-23', val: '₹44,121 Cr', note: '+22.4% — biggest jump', noteColor: 'var(--teal)', noteBold: true },
-              { year: '2023-24', val: '₹45,856 Cr', note: '+3.9% — growth moderating' },
-              { year: '2024-25', val: '₹48,344 Cr', note: '+5.4% · VAT: ₹37,324 Cr · Excise: ₹11,020 Cr · 4,787 outlets', valColor: 'var(--rust)', valSize: '1.8rem' },
-            ].map(({ year, val, note, noteColor, noteBold, valColor, valSize }) => (
-              <div key={year} className="timeline-item">
-                <div className="t-year">{year}</div>
-                <div className="t-value" style={{ color: valColor, fontSize: valSize }}>{val}</div>
-                <div className="t-note" style={{ color: noteColor, fontWeight: noteBold ? 600 : undefined }}>{note}</div>
-              </div>
-            ))}
-          </div>
+          <TasmacSparkline />
           <div className="callout teal" style={{ marginTop: '1.5rem' }}>
             <strong>TASMAC contributes ~25% of the state's own tax revenue</strong> but only 1.53% of GSDP — a declining share as the economy diversifies.<sup><a className="cite" href="#s6">[6]</a></sup> The ED alleged a ₹1,000 Cr scam in TASMAC operations in March 2025. No party's 2026 manifesto mentions prohibition.
           </div>
@@ -416,38 +476,27 @@ export default function App() {
         <p>Now you know the full picture: what the state earns, what's locked, what's already spent on welfare. Here's what the three forces are promising <strong>on top of all that</strong>.</p>
       </div>
 
+      {/* Mod 7 — Promise cards with proportional comparison bars */}
       <div className="viz-section reveal">
         <div className="promise-grid">
-          <div className="promise-card" style={{ border: '1px solid rgba(227,41,44,.15)' }}>
-            <div className="card-stripe" style={{ background: 'linear-gradient(90deg,#1a1a1a,var(--dmk))' }} />
-            <div style={{ marginTop: '.5rem' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '8px', overflow: 'hidden', margin: '0 auto .5rem', background: '#fff' }}><img src="/DMK.webp" alt="DMK" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>
-              <div className="party-tag" style={{ color: 'var(--dmk)' }}>DMK · SPA</div>
-              <div className="cost" style={{ color: 'var(--dmk)' }}>₹57,312 Cr</div>
-              <div className="pct">13.0% of total budget</div>
-              <div style={{ fontSize: '.68rem', color: 'var(--slate)', marginTop: '.5rem' }}>525 promises · 6 key schemes</div>
+          {[
+            { border: 'rgba(227,41,44,.15)', stripe: 'linear-gradient(90deg,#1a1a1a,var(--dmk))', img: '/DMK.webp', alt: 'DMK', tag: 'DMK · SPA',     cost: '₹57,312 Cr', pct: 13.0, color: 'var(--dmk)',        detail: '525 promises · 6 key schemes' },
+            { border: 'rgba(27,140,58,.15)', stripe: 'var(--admk)',                                  img: '/aiadmk.png', alt: 'AIADMK', tag: 'AIADMK · NDA', cost: '₹74,970 Cr', pct: 17.1, color: 'var(--admk)',       detail: '297 promises · 7 key schemes' },
+            { border: 'rgba(139,26,26,.15)', stripe: 'linear-gradient(90deg,var(--tvk-maroon),var(--tvk))', img: '/TVK.png', alt: 'TVK', tag: 'TVK · Alone', cost: '₹72,765 Cr', pct: 16.6, color: 'var(--tvk-maroon)', detail: "Vijay's party · 7 key schemes" },
+          ].map(({ border, stripe, img, alt, tag, cost, pct, color, detail }) => (
+            <div key={tag} className="promise-card" style={{ border: `1px solid ${border}` }}>
+              <div className="card-stripe" style={{ background: stripe }} />
+              <div style={{ marginTop: '.5rem' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '8px', overflow: 'hidden', margin: '0 auto .5rem', background: '#fff' }}>
+                  <img src={img} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                </div>
+                <div className="party-tag" style={{ color }}>{tag}</div>
+                <div className="cost" style={{ color }}>{cost}</div>
+                <div className="pct">{pct}% of total budget</div>
+                <div style={{ fontSize: '.68rem', color: 'var(--slate)', marginTop: '.5rem' }}>{detail}</div>
+              </div>
             </div>
-          </div>
-          <div className="promise-card" style={{ border: '1px solid rgba(27,140,58,.15)' }}>
-            <div className="card-stripe" style={{ background: 'var(--admk)' }} />
-            <div style={{ marginTop: '.5rem' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '8px', overflow: 'hidden', margin: '0 auto .5rem', background: '#fff' }}><img src="/aiadmk.png" alt="AIADMK" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>
-              <div className="party-tag" style={{ color: 'var(--admk)' }}>AIADMK · NDA</div>
-              <div className="cost" style={{ color: 'var(--admk)' }}>₹74,970 Cr</div>
-              <div className="pct">17.1% of total budget</div>
-              <div style={{ fontSize: '.68rem', color: 'var(--slate)', marginTop: '.5rem' }}>297 promises · 7 key schemes</div>
-            </div>
-          </div>
-          <div className="promise-card" style={{ border: '1px solid rgba(139,26,26,.15)' }}>
-            <div className="card-stripe" style={{ background: 'linear-gradient(90deg,var(--tvk-maroon),var(--tvk))' }} />
-            <div style={{ marginTop: '.5rem' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '8px', overflow: 'hidden', margin: '0 auto .5rem', background: '#fff' }}><img src="/TVK.png" alt="TVK" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>
-              <div className="party-tag" style={{ color: 'var(--tvk-maroon)' }}>TVK · Alone</div>
-              <div className="cost" style={{ color: 'var(--tvk-maroon)' }}>₹72,765 Cr</div>
-              <div className="pct">16.6% of total budget</div>
-              <div style={{ fontSize: '.68rem', color: 'var(--slate)', marginTop: '.5rem' }}>Vijay's party · 7 key schemes</div>
-            </div>
-          </div>
+          ))}
         </div>
         <div className="viz-source">Sources: Party manifestos released 22-29 Mar 2026 · Costings from <a href="https://organiser.org/2026/03/30/346418/bharat/tamil-nadu-elections-2026-dmk-aiadmk-tvk-in-freebie-war-as-fiscal-concerns-mount/" target="_blank" rel="noreferrer">Organiser</a>, <a href="https://zeenews.india.com/india/tvk-s-entry-raises-stakes-in-tamil-nadu-dmk-aiadmk-turn-to-freebies-showdown-ahead-of-polls-3031880.html" target="_blank" rel="noreferrer">Zee News</a></div>
       </div>
@@ -515,24 +564,31 @@ export default function App() {
           <div className="viz-sub">Annual cost · Targeting ~1.3 Cr women beneficiaries</div>
           <div className="compare-strip" style={{ marginTop: '1rem' }}>
             {[
-              { tag: 'TVK', color: 'var(--tvk-maroon)', bg: 'linear-gradient(90deg,var(--tvk-maroon),var(--tvk))', w: 100, label: '₹39,000 Cr — ₹2,500/mo', h: 48, fs: '.78rem' },
-              { tag: 'DMK', color: 'var(--dmk)',        bg: 'var(--dmk)',                                           w: 80,  label: '₹31,200 Cr — ₹2,000/mo', h: 48, fs: '.78rem' },
-              { tag: 'ADMK',color: 'var(--admk)',       bg: 'var(--admk)',                                          w: 80,  label: '₹31,200 Cr — ₹2,000/mo', h: 48, fs: '.78rem' },
-            ].map(({ tag, color, bg, w, label, h, fs }) => (
-              <div key={tag} className="compare-row">
+              { tag: 'TVK', color: 'var(--tvk-maroon)', bg: 'linear-gradient(90deg,var(--tvk-maroon),var(--tvk))', w: 100, amount: '₹39,000 Cr', rate: '₹2,500/mo' },
+              { tag: 'DMK', color: 'var(--dmk)',        bg: 'var(--dmk)',                                           w: 80,  amount: '₹31,200 Cr', rate: '₹2,000/mo' },
+              { tag: 'ADMK',color: 'var(--admk)',       bg: 'var(--admk)',                                          w: 80,  amount: '₹31,200 Cr', rate: '₹2,000/mo' },
+            ].map(({ tag, color, bg, w, amount, rate }) => (
+              <div key={tag} style={{ display: 'flex', alignItems: 'center', gap: '.75rem', marginBottom: '.75rem' }}>
                 <div className="compare-tag" style={{ color }}>
                   <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '3px', background: color, marginRight: '4px' }} />{tag}
                 </div>
-                <div className="compare-bar-track" style={{ height: `${h}px` }}>
-                  <div className="compare-bar-fill" data-width={w} style={{ background: bg, width: '0%', fontSize: fs }}>{label}</div>
+                <div className="compare-bar-track" style={{ height: '36px' }}>
+                  <div className="compare-bar-fill" data-width={w} style={{ background: bg, width: '0%' }} />
+                </div>
+                <div style={{ flexShrink: 0, textAlign: 'left' }}>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: '.72rem', fontWeight: 700, color: 'var(--ink)' }}>{amount}</div>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: '.62rem', color: 'var(--slate)' }}>{rate}</div>
                 </div>
               </div>
             ))}
-            <div style={{ marginTop: '.75rem', paddingTop: '.5rem', borderTop: '1px dashed var(--whisper)', opacity: .5 }}>
-              <div className="compare-row">
+            <div style={{ marginTop: '.75rem', paddingTop: '.5rem', borderTop: '1px dashed var(--whisper)', opacity: .6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '.75rem' }}>
                 <div className="compare-tag" style={{ color: 'var(--slate)' }}>Current</div>
-                <div className="compare-bar-track" style={{ height: '28px' }}>
-                  <div className="compare-bar-fill" data-width={35.4} style={{ background: 'var(--slate)', width: '0%', fontSize: '.68rem' }}>₹13,807 Cr — ₹1,000/mo (existing)</div>
+                <div className="compare-bar-track" style={{ height: '24px' }}>
+                  <div className="compare-bar-fill" data-width={35.4} style={{ background: 'var(--slate)', width: '0%' }} />
+                </div>
+                <div style={{ flexShrink: 0 }}>
+                  <div style={{ fontFamily: 'var(--mono)', fontSize: '.68rem', color: 'var(--slate)' }}>₹13,807 Cr · ₹1,000/mo</div>
                 </div>
               </div>
             </div>
@@ -553,37 +609,12 @@ export default function App() {
         <p>Let's stack all promises against the state's actual financial capacity. Here's the picture no manifesto shows you:</p>
       </div>
 
+      {/* Mod 8 — Waterfall chart (THE climax) */}
       <div className="viz-section reveal">
-        <div className="viz-card">
-          <h3>Stacking the bills against the budget</h3>
-          <div className="viz-sub">Total budget = ₹4.39L Cr · How much is left?</div>
-          <div className="compare-strip">
-            <div style={{ fontFamily: 'var(--mono)', fontSize: '.62rem', color: 'var(--slate)', marginBottom: '.5rem' }}>ALREADY LOCKED IN</div>
-            <div className="compare-row">
-              <div className="compare-tag" style={{ color: 'var(--slate)' }}>Committed</div>
-              <div className="compare-bar-track"><div className="compare-bar-fill" data-width={47.2} style={{ background: '#444', width: '0%' }} /></div>
-              <div className="compare-bar-outside-label">₹2.07L Cr — 47% of budget</div>
-            </div>
-            <div className="compare-row">
-              <div className="compare-tag" style={{ color: 'var(--slate)' }}>Welfare</div>
-              <div className="compare-bar-track"><div className="compare-bar-fill" data-width={36.4} style={{ background: '#777', width: '0%' }} /></div>
-              <div className="compare-bar-outside-label">₹1.60L Cr — 36% of budget</div>
-            </div>
-            <div style={{ fontFamily: 'var(--mono)', fontSize: '.62rem', color: 'var(--slate)', margin: '1rem 0 .5rem' }}>NEW PROMISES (on top of the above)</div>
-            {[
-              { tag: 'DMK',  color: 'var(--dmk)',        bg: 'var(--dmk)',                                          w: 13,   label: '₹57K Cr — 13%' },
-              { tag: 'ADMK', color: 'var(--admk)',       bg: 'var(--admk)',                                         w: 17.1, label: '₹75K Cr — 17%' },
-              { tag: 'TVK',  color: 'var(--tvk-maroon)', bg: 'linear-gradient(90deg,var(--tvk-maroon),var(--tvk))', w: 16.6, label: '₹73K Cr — 17%' },
-            ].map(({ tag, color, bg, w, label }) => (
-              <div key={tag} className="compare-row">
-                <div className="compare-tag" style={{ color }}>
-                  <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '2px', background: color, marginRight: '3px' }} />{tag}
-                </div>
-                <div className="compare-bar-track"><div className="compare-bar-fill" data-width={w} style={{ background: bg, width: '0%' }} /></div>
-                <div className="compare-bar-outside-label" style={{ color }}>{label}</div>
-              </div>
-            ))}
-          </div>
+        <div className="viz-card" style={{ borderTop: '3px solid var(--rust)' }}>
+          <h3>Where does the money actually go?</h3>
+          <div className="viz-sub">Total budget ₹4.39L Cr — watch it disappear · scroll into view to animate</div>
+          <WaterfallChart />
           <div className="viz-source">Sources: <a href="https://prsindia.org/budgets/states/tamil-nadu-budget-analysis-2025-26" target="_blank" rel="noreferrer">[1] PRS India 2025-26</a></div>
         </div>
       </div>
